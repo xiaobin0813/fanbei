@@ -1,5 +1,6 @@
 #!/usr/bin/python
-# coding: UTF-8
+# coding: utf-8
+
 
 """This script parse stock info"""
 
@@ -9,47 +10,79 @@ from pandas import Series,DataFrame
 import pandas as pd
 import time
 
+def get_name(code):
+    df = ts.get_stock_basics()
+    name = df.ix[code,'name']
+    return name
+def get_pb(code):
+    df1 = ts.get_stock_basics()
+    pb = df1.ix[code,'pb']
+    return pb
 def get_roe_time():
     date_year = int(time.strftime('%Y', time.localtime(time.time())))
     date_month = int(time.strftime('%m', time.localtime(time.time())))
+
     if date_month in (1, 2, 3):
         roe_year = date_year - 1
         roe_month = 4
-        print 1, roe_year, roe_month
     elif date_month in (4, 5, 6):
         roe_year = date_year
         roe_month = 1
-        print 2, roe_year, roe_month
     elif date_month in (7, 8, 9):
         roe_year = date_year
         roe_month = 2
-        print 3, roe_year, roe_month
     else:
         roe_year = date_year
         roe_month = 3
-        print 4, roe_year, roe_month
-    print roe_year, roe_month
-
+    return roe_year, roe_month
 
 def get_roe(code):
+    '测试发现roe1获取的结果为nan'
     get_roe_time()
-    df2 = ts.get_profit_data(roe_year, roe_month)
-    # roe1 = df2[u'code'][u'roe']
-    roe = df2[u'roe']
-    df3 = ts.get_hist_data(roe_year, roe_month)
-    roe = df3[u'roe']
-    idx=0
-    for idx in range(len(roe)):
-        roe_val = roe[idx]
-        idx+=1
-        print roe_val
+    date = get_roe_time()
+    df1 = ts.get_report_data(date[0], date[1])
+    roe = df1.ix[code, 'roe']
+    if 'nan'in roe and date[1]!=1:
+        df2 = ts.get_report_data(date[0], date[1]-1)
+        roe = df2.ix[code, 'roe']
+    elif 'nan'in roe and date[1]==1:
+        df3 = ts.get_report_data(date[0]-1, 4)
+        roe = df3.ix[code, 'roe']
+    return roe
 
+def get_roe2(code):
+    '测试发现roe2获取的结果也为nan'
+    get_roe_time()
+    date = get_roe_time()
+    df2 = ts.get_profit_data(date[0], date[1])
+    roe = df2.ix[code, 'roe']
+    return roe
 
+def get_fb1(code):
+    'LOG(市净率两倍，资产收益率+1) ,pb;市净率 roe,净资产收益率(%)roe的来源：1业绩报告（主表）2，盈利能力数据'
+    name=get_name(code)
+    pb=get_pb(code)
+    roe=get_roe(code)
+    i = 0
+    fbx=[]
+    namex=[]
+    print("\n")
+    for i in range(len(pb.values)):
+        pbv = pb.values[i]
+        roev = pb.values[i]
 
-def get_pb(code):
-    df1 = ts.get_stock_basics()
-    # pb = df[['pb']]
-    pb = df1.ix[code]['pb']
+        #由于拿不到正常的roe值，原因是roe这个指标缺失，取的结果是nan；这里暂时使用pb的值代替
+        #fb1 = math.log(pbv*2,(roev/100) + 1)
+        fb1 = math.log(pbv*2,(10.89/100) + 1)
+        #print i + 1, pb.index[i],pb.values[i],float('%.2f' % fb1)
+        print i + 1, pb.index[i],name[i], float('%.2f' % fb1)
+        fbx.append(round(fb1,2))
+        namex.append(name[i])
+        i += 1
+    print "The following is FB："
+    #return fbx
+    return  dict(zip(STOCK,fbx))
+
 def get_fb2(code):
     get_pb(code)
     get_roe()
@@ -64,7 +97,7 @@ def get_fb2(code):
 
 
 if __name__ == '__main__':
-    STOCK1  = ['600219',  ##南山铝业
+    TEST  = ['600219',  ##南山铝业
              '000002',  ##万  科Ａ
              '000623',  ##吉林敖东
              '000725',  ##京东方Ａ
@@ -78,10 +111,25 @@ if __name__ == '__main__':
              '000338',  ##潍柴动力
              '000895',  ##双汇发展
              '000792']  ##盐湖股份
-    STOCK2=['HK001988','HK000998','HK006818','HK003328','HK001963','HK003618','HK003988','SH600016','SH600015','SH601328','HK001288','SH601166','SH601818','HK001398','HK000939','SH601288','SH600000','SH600919','SH601988','SH601997','HK003968','SH601998','SZ000001','SH601398','SH601939','SH600036','SZ002142','SH601169','SH601009']        #get_all_price(STOCK)
-    STOCK3=['001988','000998','006818','003328','001963','003618','003988','600016','600015','601328','001288','601166','601818','001398','000939','601288','600000','600919','601988','601997','003968','601998','000001','601398','601939','600036','002142','601169','601009']
-    code = ['600016','600015','601328','601166','601818','601288','600000','600919','601988','601997','601998','000001','601398','601939','600036','002142','601169','601009']
-    #timeToMarket(STOCK)
-    print get_pb(code)
+    STOCK = ['600016',
+             '600015',
+             '601328',
+             '601166',
+             '601818',
+             '601288',
+             '600000',
+             '600919',
+             '601988',
+             '601997',
+             '601998',
+             '000001',
+             '601398',
+             '601939',
+             '600036',
+             '002142',
+             '601169',
+             '601009']
+
+    print get_fb1(STOCK)
 
 
