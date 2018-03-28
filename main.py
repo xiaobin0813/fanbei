@@ -67,15 +67,16 @@ def get_fb1(code):
     fbx=[]
     namex=[]
     print("\n")
+    print "i\tcode\tname\tpb\tfb"
     for i in range(len(pb.values)):
         pbv = pb.values[i]
         roev = pb.values[i]
-
+        bankrov=[]
         #由于拿不到正常的roe值，原因是roe这个指标缺失，取的结果是nan；这里暂时使用pb的值代替
         #fb1 = math.log(pbv*2,(roev/100) + 1)
         fb1 = math.log(pbv*2,(10.89/100) + 1)
         #print i + 1, pb.index[i],pb.values[i],float('%.2f' % fb1)
-        print i + 1, pb.index[i],name[i], float('%.2f' % fb1)
+        print i + 1, pb.index[i],name[i],pb.values[i],float('%.2f' % fb1)
         fbx.append(round(fb1,2))
         namex.append(name[i])
         i += 1
@@ -129,7 +130,24 @@ if __name__ == '__main__':
              '002142',
              '601169',
              '601009']
+    bankroe=['600016',
+             '600015',
+             '601328',
+             '601166',
+             '601818',
+             '601288',
+             '600000',
+             '600919',
+             '601988',
+             '601997',
+             '601998',
+             '000001',
+             '601398',
+             '601939',
+             '600036',
+             '002142',
+             '601169',
+             '601009']
 
     print get_fb1(STOCK)
-
 
